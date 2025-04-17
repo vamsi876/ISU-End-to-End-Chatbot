@@ -1,0 +1,12 @@
+Metadata-Version: 2.2
+Name: University-chatbot
+Version: 1.0.0
+Author: Vamsi Krishna Kollipara
+Author-email: kolliparavamsikrishna80@gmail.com
+Requires-Dist: sentence-transformers==2.2.2
+Requires-Dist: langchain
+Requires-Dist: flask
+Requires-Dist: pypdf
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
