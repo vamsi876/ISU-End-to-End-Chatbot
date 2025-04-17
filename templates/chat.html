@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <div class="chat-app">
+        <div class="chat-header">
+            <div class="university-logo">
+                <i class="fas fa-university"></i>
+            </div>
+            <div class="header-info">
+                <h1>University Assistant</h1>
+                <p>Your personal guide to university information</p>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <i class="fas fa-robot bot-icon"></i>
+                        <div class="text-content">
+                            Hello! I'm your university assistant. Ask me anything about university information.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Type your question here..." autocomplete="off">
+                <button onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addMessage(message, isUser) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (isUser) {
+                const userIcon = document.createElement('i');
+                userIcon.className = 'fas fa-user user-icon';
+                messageContent.appendChild(userIcon);
+            } else {
+                const botIcon = document.createElement('i');
+                botIcon.className = 'fas fa-robot bot-icon';
+                messageContent.appendChild(botIcon);
+            }
+            
+            const textContent = document.createElement('div');
+            textContent.className = 'text-content';
+            textContent.textContent = message;
+            
+            messageContent.appendChild(textContent);
+            messageDiv.appendChild(messageContent);
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, true);
+                
+                // Clear input field
+                userInput.value = '';
+                
+                // Show loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message bot-message';
+                loadingDiv.id = 'loading-message';
+                
+                const loadingContent = document.createElement('div');
+                loadingContent.className = 'message-content';
+                
+                const botIcon = document.createElement('i');
+                botIcon.className = 'fas fa-robot bot-icon';
+                
+                const textContent = document.createElement('div');
+                textContent.className = 'text-content loading';
+                textContent.innerHTML = '<span class="typing-indicator"><span>.</span><span>.</span><span>.</span></span>';
+                
+                loadingContent.appendChild(botIcon);
+                loadingContent.appendChild(textContent);
+                loadingDiv.appendChild(loadingContent);
+                
+                document.getElementById('chat-messages').appendChild(loadingDiv);
+                
+                // Send request to server
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/get", true);
+                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        // Remove loading indicator
+                        const loadingMessage = document.getElementById('loading-message');
+                        if (loadingMessage) {
+                            loadingMessage.remove();
+                        }
+                        
+                        if (xhr.status === 200) {
+                            // Remove "? System:" prefix from response if it exists
+                            let botResponse = xhr.responseText;
+                            if (botResponse.startsWith('? System:')) {
+                                botResponse = botResponse.substring('? System:'.length).trim();
+                            }
+                            // Add bot response
+                            addMessage(botResponse, false);
+                        } else {
+                            addMessage('Sorry, there was an error processing your request.', false);
+                        }
+                    }
+                };
+                xhr.send("msg=" + encodeURIComponent(message));
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('user-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
